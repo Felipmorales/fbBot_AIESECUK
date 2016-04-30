@@ -10,6 +10,9 @@ app.use(bodyParser.json())
 // Receipt variable
 var ordernum = 100;
 
+// Port
+app.listen(process.env.PORT || 3000)
+
 // Page token
 var token = "EAAK9h7BPLV0BABWIuq5XvsX0K6iZCaxVvYygz7jQ7fd8koYi75zZCev7X8p1rSe5vu1SDHuaKYm18GE6I6nGqVxnj9ivGvKGBOe4FLrsR2UrDjtQkajLAYSZAfKiplciX4Hw4esGJGS4jKnbxtAJVSiOyJsHXcZD";
 
@@ -29,6 +32,23 @@ app.get('/webhook', function (req, res) {
 // - SETUP -
 
 // - FUNCTIONS -
+// Get User information
+// sender = user
+function getInfoUser(sender){
+  request({
+    url: 'https://graph.facebook.com/v2.6/'+sender+'?access_token='+token+'&fields=first_name,last_name,profile_pic',
+    method: 'GET'
+  }, function(error, response, body) {
+        var parsedBody = JSON.parse(body);
+        var first_name = parsedBody.first_name;
+        var last_name = parsedBody.last_name;
+        var profile_pic = parsedBody.profile_pic;
+        sendTextMessage(sender,"Hello "+first_name+"! Thank you for getting in touch with AIESEC UK. I'm an automated assistant created to guide you in this leadership journey. How can I be useful today? BTW You look awesome in your profile picture!")
+        sendInputImageMessage(sender,profile_pic);
+        //console.log(sender);
+  })
+}
+
 // sendTextMessage function
 function sendTextMessage(sender, text) {
   messageData = {
@@ -50,6 +70,35 @@ function sendTextMessage(sender, text) {
     }
   });
 }
+
+// sendTextWithImagesMessage function
+function sendInputImageMessage(sender,imgurl) {
+  var theimage = imgurl;
+  messageData = {
+    "attachment": {
+      "type": "image",
+      "payload": {
+        "url": theimage
+      }
+     }
+   }
+  request({
+    url: 'https://graph.facebook.com/v2.6/me/messages',
+    qs: {access_token:token},
+    method: 'POST',
+    json: {
+      recipient: {id:sender},
+      message: messageData,
+    }
+  }, function(error, response, body) {
+    if (error) {
+      console.log('Error sending message: ', error);
+    } else if (response.body.error) {
+      console.log('Error: ', response.body.error);
+    }
+  });
+}
+
 
 // sendTextWithImagesMessage function
 function sendImageMessage(sender) {
@@ -232,6 +281,7 @@ app.post('/webhook', function (req, res) {
   for (i = 0; i < messaging_events.length; i++) {
     event = req.body.entry[0].messaging[i];
     sender = event.sender.id;
+    recipient = event.recipient.id;
     if (event.message && event.message.text) {
       text = event.message.text;
       // Handle a text message from this sender
@@ -258,10 +308,10 @@ app.post('/webhook', function (req, res) {
         sendTextMessage(sender, "Postback received: "+text.substring(0, 200), token);
         continue;
       }
-      sendTextMessage(sender,"I'm a parrot! ECHO!: "+ text.substring(0, 200));
+      getInfoUser(sender);
+      //console.log('Recipient: '+recipient)
+      //sendTextMessage(sender,"I'm a parrot! ECHO!: "+ text.substring(0, 200));
     }
   }
   res.sendStatus(200);
 });
-
-app.listen(process.env.PORT || 3000)

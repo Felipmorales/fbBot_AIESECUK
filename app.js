@@ -3,14 +3,19 @@ var app = express();
 var request = require('request');
 var bodyParser = require('body-parser')
 
+// - SETUP -
+// body-parser for JSON
 app.use(bodyParser.json())
 
-// test
+// Page token
+var token = "EAAK9h7BPLV0BABWIuq5XvsX0K6iZCaxVvYygz7jQ7fd8koYi75zZCev7X8p1rSe5vu1SDHuaKYm18GE6I6nGqVxnj9ivGvKGBOe4FLrsR2UrDjtQkajLAYSZAfKiplciX4Hw4esGJGS4jKnbxtAJVSiOyJsHXcZD";
+
+// To check the server is live
 app.get('/hello',function(req,res){
   res.send('Live!')
 })
 
-// webhook setup
+// webhook setup and token verification
 app.get('/webhook', function (req, res) {
   if (req.query['hub.verify_token'] === 'aiesecuk_hottogo') {
     res.send(req.query['hub.challenge']);
@@ -18,10 +23,10 @@ app.get('/webhook', function (req, res) {
     res.send('Error, wrong validation token');
   }
 });
+// - SETUP -
 
-//what replies
-var token = "EAAK9h7BPLV0BABWIuq5XvsX0K6iZCaxVvYygz7jQ7fd8koYi75zZCev7X8p1rSe5vu1SDHuaKYm18GE6I6nGqVxnj9ivGvKGBOe4FLrsR2UrDjtQkajLAYSZAfKiplciX4Hw4esGJGS4jKnbxtAJVSiOyJsHXcZD";
-
+// - FUNCTIONS -
+// sendTextMessage function
 function sendTextMessage(sender, text) {
   messageData = {
     text:text
@@ -43,6 +48,7 @@ function sendTextMessage(sender, text) {
   });
 }
 
+// sendGenericMessage function
 function sendGenericMessage(sender) {
   messageData = {
     "attachment": {
@@ -50,26 +56,26 @@ function sendGenericMessage(sender) {
       "payload": {
         "template_type": "generic",
         "elements": [{
-          "title": "What are you doing this summer?",
-          "subtitle": "Impact the world!",
-          "image_url": "https://upload.wikimedia.org/wikipedia/commons/d/dd/AIESEC_Blue_Logo.png",
+          "title": "Do you know what is AIESEC?",
+          "subtitle": "We are the biggest youth-led organisation",
+          "image_url": "http://aiesec.org/wp-content/uploads/2014/11/AIESEC-Favicon-309x341.png",
           "buttons": [{
             "type": "web_url",
             "url": "http://www.aiesec.co.uk",
-            "title": "AIESEC UK"
+            "title": "Get to know more"
           }, {
             "type": "postback",
             "title": "Postback",
             "payload": "Payload for first element in a generic bubble",
           }],
         },{
-          "title": "Second card",
-          "subtitle": "Element #2 of an hscroll",
-          "image_url": "http://messengerdemo.parseapp.com/img/gearvr.png",
+          "title": "What is Youth 4 Global Goals?",
+          "subtitle": "A global movement led by youth to achieve the SDGs",
+          "image_url": "http://s32.postimg.org/b65fsm2vp/Youth_4_Global_Goals_logo.png",
           "buttons": [{
-            "type": "postback",
-            "title": "Postback",
-            "payload": "Payload for second element in a generic bubble",
+            "type": "web_url",
+            "title": "That's interesting",
+            "url": "http://youth4gg.aiesec.co.uk",
           }],
         }]
       }

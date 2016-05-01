@@ -8,13 +8,37 @@ var bodyParser = require('body-parser')
 app.use(bodyParser.json())
 
 // Receipt variable
-var ordernum = 100;
+//var ordernum = 100;
 
 // Port
 app.listen(process.env.PORT || 3000)
 
 // Page token
 var token = "EAAK9h7BPLV0BABWIuq5XvsX0K6iZCaxVvYygz7jQ7fd8koYi75zZCev7X8p1rSe5vu1SDHuaKYm18GE6I6nGqVxnj9ivGvKGBOe4FLrsR2UrDjtQkajLAYSZAfKiplciX4Hw4esGJGS4jKnbxtAJVSiOyJsHXcZD";
+
+// Welcome message
+function WelcomeMessage() {
+  messageData = {
+      "text": "Welcome to AIESEC UK! Just say Hi and our AI assistant will help you.",
+   }
+  request({
+    url: 'https://graph.facebook.com/v2.6/7271269619/thread_settings',
+    qs: {access_token:token},
+    method: 'POST',
+    json: {
+      setting_type: 'call_to_actions',
+      thread_state: 'new_thread',
+      call_to_actions: [{message: messageData}]
+    }
+  }, function(error, response, body) {
+    if (error) {
+      console.log('Error sending message: ', error);
+    } else if (response.body.error) {
+      console.log('Error: ', response.body.error);
+    }
+  });
+  console.log('Runnnnning');
+}
 
 // To check the server is live
 app.get('/hello',function(req,res){
@@ -223,15 +247,15 @@ function sendGenericMessage(sender) {
 }
 
 // sendReceiptMessage function
-function sendReceiptMessage(sender) {
-  ordernum = ordernum + 1;
+function sendReceiptMessage(sender, time) {
+  var order = time;
   messageData = {
     "attachment": {
       "type": "template",
       "payload": {
         "template_type": "receipt",
         "recipient_name": "Felipe Morales",
-        "order_number": ordernum,
+        "order_number": '1'+order,
         "currency": "GBP",
         "payment_method": "Visa 4447",
         "elements": {
@@ -282,6 +306,7 @@ app.post('/webhook', function (req, res) {
     event = req.body.entry[0].messaging[i];
     sender = event.sender.id;
     recipient = event.recipient.id;
+    time = req.body.entry[0].time;
     if (event.message && event.message.text) {
       text = event.message.text;
       // Handle a text message from this sender
@@ -291,8 +316,8 @@ app.post('/webhook', function (req, res) {
         continue;
       }
      if (text === 'Receipt') {
-        console.log(ordernum);
-        sendReceiptMessage(sender);
+        console.log('Timestamp:'+time);
+        sendReceiptMessage(sender,time);
         continue;
       }
      if (text === 'Images') {
@@ -309,6 +334,8 @@ app.post('/webhook', function (req, res) {
         continue;
       }
       getInfoUser(sender);
+      //Erase the comment lines to set the WelcomeMessage
+      //WelcomeMessage();
       //console.log('Recipient: '+recipient)
       //sendTextMessage(sender,"I'm a parrot! ECHO!: "+ text.substring(0, 200));
     }
